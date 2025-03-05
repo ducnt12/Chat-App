@@ -1,34 +1,26 @@
-const ChatList: React.FC = () => {
-  const SenderChat: React.FC = () => {
-    return (
-      <div className="chat_sender">
-        <img src="https://picsum.photos/id/237/200/300" alt="" />
-        <p>
-          <strong>das</strong>
-          <br />
-          asda
-        </p>
-      </div>
-    );
-  };
+import { FC } from "react";
+import ChatBox, { Mode } from "./ChatBox";
+import { Chat, User } from "../class/interfaces";
 
-  const ReceiverChat: React.FC = () => {
-    return (
-      <div className="chat_receiver">
-        <img src="https://picsum.photos/id/237/200/300" alt="" />
-        <p>
-          <strong>hello</strong>
-          <br />
-          asda
-        </p>
-      </div>
-    );
-  };
+interface ChatListProps {
+  chats: Chat[];
+  loggedUser: User;
+}
 
+const ChatList: FC<ChatListProps> = ({ chats, loggedUser }) => {
   return (
-    <div>
-      <SenderChat />
-      <ReceiverChat />
+    <div className="chat_list">
+      {chats.map((chat) => {
+        if (chat.sender.username === loggedUser.username) {
+          return (
+            <ChatBox msg={chat.msg} sender={chat.sender} mode={Mode.Sender} />
+          );
+        } else {
+          return (
+            <ChatBox msg={chat.msg} sender={chat.sender} mode={Mode.Receiver} />
+          );
+        }
+      })}
     </div>
   );
 };

@@ -1,13 +1,12 @@
-import { ReactElement } from "react";
 import ChatPage from "./pages/ChatPage";
 import "./style.css";
 
-function App(): ReactElement {
+const App: React.FC = () => {
   return (
     <div className="App">
       <ChatPage />
     </div>
   );
-}
+};
 
 export default App;

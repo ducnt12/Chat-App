@@ -65,6 +65,12 @@
   color: rgb(6, 152, 152);
 }
 /* chat list */
+.chat_list {
+  height: 75vh;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
 .chat_sender {
   display: flex;
   justify-content: flex-end;

@@ -1,29 +1,42 @@
 import { FaReact } from "react-icons/fa6";
-import User from "../class/user";
-import { StateAction } from "../class/StateAction";
-import { useState } from "react";
+import { User, StateAction } from "../class/interfaces";
+import { FC, useState } from "react";
+import { RandomNumCallback } from "../class/types";
 
-const LoginPage: React.FC<StateAction<User>> = ({ set }) => {
+const LoginPage: FC<StateAction<User>> = ({ set }) => {
   const [user, setUser] = useState<User>({ username: "", avatar: "" });
-  const handleLogin = (): void => {
-    // Get random avatar from Lorem Picsum
-    setUser({
-      ...user,
-      avatar: `https://picsum.photos/id/${
-        Math.floor(Math.random() * (1000 - 1 + 1)) + 1
-      }/200/300`,
-    });
-    // // Set value to localStorage
-    // localStorage.setItem("user", JSON.stringify(user));
-    set(user);
+
+  // Get random number
+  const getRandomNumber: RandomNumCallback = (
+    min: number,
+    max: number
+  ): number => {
+    if (min > max) {
+      throw new Error("Min value must be less than or equal to max value.");
+    }
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   };
+
+  // Handle form submission
+  const handleLogin = (callback: RandomNumCallback): void => {
+    set({
+      ...user,
+      avatar: `https://picsum.photos/id/${callback(1, 100)}/200/300`,
+    });
+  };
+
   return (
     <div className="login_container">
       <div className="login_title">
         <FaReact className="login_icon" />
         <h1>Chat App</h1>
       </div>
-      <form onSubmit={() => handleLogin()} className="login_form">
+      <form
+        onSubmit={() =>
+          handleLogin((min: number, max: number) => getRandomNumber(min, max))
+        }
+        className="login_form"
+      >
         <input
           name="username"
           type="text"
