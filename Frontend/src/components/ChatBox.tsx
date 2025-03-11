@@ -12,10 +12,7 @@ export enum Mode {
 
 const ChatBox: FC<ChatBoxProps<Mode>> = ({ msg, sender, mode }) => {
   return (
-    <div
-      key={sender.username}
-      className={mode === Mode.Sender ? "chat_sender" : "chat_receiver"}
-    >
+    <div className={mode === Mode.Sender ? "chat_sender" : "chat_receiver"}>
       {mode === Mode.Receiver ? <img src={sender.avatar} alt="" /> : <></>}
       <p>
         <strong>{sender.username}</strong>

@@ -1,29 +1,46 @@
 import express, { Request, Response } from "express";
-import cors from "cors";
 import { corsOptions } from "./settings/CorsOptions";
 import http from "http";
 import { Server } from "socket.io";
-import { Chat } from "./class/interfaces";
-import { log } from "console";
+import { Chat, findAllChats, saveChat } from "./models/Chat";
+import connectDB from "./db";
+import cors from "cors";
 
+// Initilize Express App
 const app = express();
-const server = http.createServer(app);
-const port: number = 3001;
+app.use(cors(corsOptions));
 
-app.use(cors(corsOptions)); // Apply CORS to Express routes
+// Connect MongoDB
+connectDB();
+
+// Create server
+const server = http.createServer(app);
+const port: number = 3002;
 
 const io = new Server(server, {
   cors: corsOptions, // Apply CORS to Socket.IO
 });
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
 
-  socket.on("chat", (chats: Chat[]) => {
-    io.emit("chat", chats);
-    console.log(`A message sent ${chats.at(-1)?.msg}`);
+  //Load message from db and send to chat
+  try {
+    const chats: Chat[] = await findAllChats();
+    io.emit("initChatView", chats);
+  } catch (error) {
+    console.log(error);
+  }
+
+  //subcribe to newMessage channel -> save new message to db then send it back to message channel.
+  socket.on("newMessage", async (chat: Chat) => {
+    const newChat: Chat = await saveChat(chat);
+    io.emit("messageView", newChat);
+    console.log(
+      `A new message saved: ${chat.msg} from ${chat.sender.username}`
+    );
   });
 });
 

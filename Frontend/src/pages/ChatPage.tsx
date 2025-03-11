@@ -10,21 +10,30 @@ import io from "socket.io-client";
 
 const ChatPage: FC = () => {
   const [user, setUser] = useState<User>({ username: null });
-  const socketRef = useRef<SocketIOClient.Socket | null>(io(serverUrl));
+  const socketRef = useRef<SocketIOClient.Socket | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
+  // const [newMsgSent, setNewMsgSent] = useState<number>(0);
 
   useEffect(() => {
-    socketRef.current?.on("chat", (chats: Chat[]) => {
+    socketRef.current = io(serverUrl);
+    socketRef.current?.on("initChatView", (chats: Chat[]) => {
       setChats(chats);
     });
-  }, [chats]);
+
+    // subcribe to message channel -> update chat state
+    socketRef.current?.on("messageView", (chat: Chat) => {
+      setChats((prevChats) => [...prevChats, chat]);
+    });
+    // unsubcribe from message and chat channel
+    return () => {
+      socketRef.current?.off("initChatView");
+      socketRef.current?.off("messageView");
+    };
+  }, []);
 
   const sendMsg = (msg: string): void => {
-    setChats([...chats, { msg: msg, sender: { ...user } }]);
-    socketRef.current?.emit("chat", [
-      ...chats,
-      { msg: msg, sender: { ...user } },
-    ]);
+    socketRef.current?.emit("newMessage", { msg: msg, sender: { ...user } });
+    // setNewMsgSent(newMsgSent === 0 ? 1 : 0);
   };
 
   return (
