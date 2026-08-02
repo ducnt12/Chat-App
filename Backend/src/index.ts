@@ -15,7 +15,11 @@ connectDB();
 
 // Create server
 const server = http.createServer(app);
-const port: number = 3002;
+const port: number = Number.parseInt(process.env.PORT ?? "3002", 10);
+
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error("PORT must be an integer between 1 and 65535");
+}
 
 const io = new Server(server, {
   cors: corsOptions, // Apply CORS to Socket.IO

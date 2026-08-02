@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 
 const connectDB = () => {
-  const mongoURI: string = "mongodb://localhost:27017/chat-app";
+  const mongoURI: string =
+    process.env.MONGO_URI ?? "mongodb://localhost:27017/chat-app";
   mongoose
     .connect(mongoURI)
     .then(() => console.log("DB connected"))

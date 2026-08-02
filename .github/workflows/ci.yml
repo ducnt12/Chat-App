@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  packages:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Backend
+            directory: Backend
+            lint: false
+          - name: Frontend
+            directory: Frontend
+            lint: true
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.directory }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.directory }}
+        run: npm ci
+
+      - name: Lint
+        if: matrix.lint
+        working-directory: ${{ matrix.directory }}
+        run: npm run lint
+
+      - name: Build
+        working-directory: ${{ matrix.directory }}
+        run: npm run build
+
+  containers:
+    name: Container build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: packages
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+
+      - name: Build application images
+        run: docker compose build backend frontend

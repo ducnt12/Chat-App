@@ -1,1 +1,2 @@
-export const serverUrl: string = "http://localhost:3002/";
+export const serverUrl: string =
+  import.meta.env.VITE_SERVER_URL ?? "http://localhost:3002/";
