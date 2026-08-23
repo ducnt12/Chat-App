@@ -1,17 +1,22 @@
-import { Dispatch, SetStateAction } from "react";
-
-// User
-export interface StateAction<T> {
-  set: Dispatch<SetStateAction<T>>;
-}
-
 export interface User {
-  username: string | null;
-  avatar?: string;
+  username: string;
+  avatar: string;
 }
 
-//Chat
-export interface Chat {
+export interface NewMessage {
   msg: string;
   sender: User;
+}
+
+export interface Chat extends NewMessage {
+  _id: string;
+}
+
+export interface ServerToClientEvents {
+  initChatView: (chats: Chat[]) => void;
+  messageView: (chat: Chat) => void;
+}
+
+export interface ClientToServerEvents {
+  newMessage: (chat: NewMessage) => void;
 }

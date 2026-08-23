@@ -1,27 +1,39 @@
-import { FC } from "react";
-import ChatBox, { Mode } from "./ChatBox";
-import { Chat, User } from "../class/interfaces";
+import ChatBox from "./ChatBox";
+import type { Chat, User } from "../class/interfaces";
 
 interface ChatListProps {
   chats: Chat[];
   loggedUser: User;
 }
 
-const ChatList: FC<ChatListProps> = ({ chats, loggedUser }) => {
+const ChatList = ({ chats, loggedUser }: ChatListProps) => {
   return (
-    <div className="chat_list">
-      {chats.map((chat) => {
-        if (chat.sender.username === loggedUser.username) {
-          return (
-            <ChatBox msg={chat.msg} sender={chat.sender} mode={Mode.Sender} />
-          );
-        } else {
-          return (
-            <ChatBox msg={chat.msg} sender={chat.sender} mode={Mode.Receiver} />
-          );
-        }
-      })}
-    </div>
+    <section
+      className="chat_list"
+      role="log"
+      aria-label="Conversation"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
+      {chats.length === 0 ? (
+        <div className="chat_empty">
+          <span className="brand_mark brand_mark_empty" aria-hidden="true">
+            <span>•••</span>
+          </span>
+          <h2>No messages yet</h2>
+          <p>Start the conversation when you’re ready.</p>
+        </div>
+      ) : (
+        chats.map((chat) => (
+          <ChatBox
+            key={chat._id}
+            msg={chat.msg}
+            sender={chat.sender}
+            isSender={chat.sender.username === loggedUser.username}
+          />
+        ))
+      )}
+    </section>
   );
 };
 

@@ -1,53 +1,64 @@
-import { FaReact } from "react-icons/fa6";
-import { User, StateAction } from "../class/interfaces";
-import { FC, useState } from "react";
-import { RandomNumCallback } from "../class/types";
+import { FaCommentDots, FaUser } from "react-icons/fa6";
+import { useState, type FormEvent } from "react";
+import type { User } from "../class/interfaces";
 
-const LoginPage: FC<StateAction<User>> = ({ set }) => {
-  const [user, setUser] = useState<User>({ username: "", avatar: "" });
+interface LoginPageProps {
+  onLogin: (user: User) => void;
+}
 
-  // Get random number
-  const getRandomNumber: RandomNumCallback = (
-    min: number,
-    max: number
-  ): number => {
-    if (min > max) {
-      throw new Error("Min value must be less than or equal to max value.");
+const getRandomPhotoId = (): number => Math.floor(Math.random() * 100) + 1;
+
+const LoginPage = ({ onLogin }: LoginPageProps) => {
+  const [username, setUsername] = useState("");
+
+  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedUsername) {
+      return;
     }
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
 
-  // Handle form submission
-  const handleLogin = (callback: RandomNumCallback): void => {
-    set({
-      ...user,
-      avatar: `https://picsum.photos/id/${callback(1, 100)}/200/300`,
+    onLogin({
+      username: trimmedUsername,
+      avatar: `https://picsum.photos/id/${getRandomPhotoId()}/200/300`,
     });
   };
 
   return (
-    <div className="login_container">
-      <div className="login_title">
-        <FaReact className="login_icon" />
-        <h1>Chat App</h1>
+    <section className="login_card" aria-labelledby="login_title">
+      <div className="login_brand" translate="no">
+        <span className="brand_mark" aria-hidden="true">
+          <FaCommentDots />
+        </span>
+        <span>Chat App</span>
       </div>
-      <form
-        onSubmit={() =>
-          handleLogin((min: number, max: number) => getRandomNumber(min, max))
-        }
-        className="login_form"
-      >
-        <input
-          name="username"
-          type="text"
-          placeholder="Place your username here"
-          onChange={(e) =>
-            setUser({ ...user, [e.target.name]: e.target.value })
-          }
-        />
-        <button type="submit">Login</button>
+
+      <div className="login_copy">
+        <p className="login_eyebrow">Welcome</p>
+        <h1 id="login_title">Welcome to Chat App</h1>
+        <p>Choose a display name to enter the conversation.</p>
+      </div>
+
+      <form onSubmit={handleLogin} className="login_form">
+        <label htmlFor="username">Display Name</label>
+        <div className="login_input">
+          <FaUser aria-hidden="true" />
+          <input
+            id="username"
+            name="username"
+            type="text"
+            placeholder="e.g. Alex…"
+            autoComplete="username"
+            spellCheck={false}
+            required
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+          />
+        </div>
+        <button type="submit">Join Chat</button>
       </form>
-    </div>
+    </section>
   );
 };
 

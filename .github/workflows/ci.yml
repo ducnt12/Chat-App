@@ -25,9 +25,11 @@ jobs:
           - name: Backend
             directory: Backend
             lint: false
+            test: false
           - name: Frontend
             directory: Frontend
             lint: true
+            test: true
 
     steps:
       - name: Check out repository
@@ -48,6 +50,11 @@ jobs:
         if: matrix.lint
         working-directory: ${{ matrix.directory }}
         run: npm run lint
+
+      - name: Test
+        if: matrix.test
+        working-directory: ${{ matrix.directory }}
+        run: npm test
 
       - name: Build
         working-directory: ${{ matrix.directory }}
