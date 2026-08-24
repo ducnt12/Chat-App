@@ -1,53 +1,92 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { io, type Socket } from "socket.io-client";
 
 import ChatList from "../components/ChatList";
 import InputText from "../components/InputText";
 import ChatHeader from "../components/ChatHeader";
 import LoginPage from "./LoginPage";
 import { serverUrl } from "../assets/data";
-import { Chat, User } from "../class/interfaces";
-import io from "socket.io-client";
+import type {
+  Chat,
+  ClientToServerEvents,
+  ServerToClientEvents,
+  User,
+} from "../class/interfaces";
 
-const ChatPage: FC = () => {
-  const [user, setUser] = useState<User>({ username: null });
-  const socketRef = useRef<SocketIOClient.Socket | null>(null);
+type ChatSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+
+const ChatPage = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const socketRef = useRef<ChatSocket | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
-  // const [newMsgSent, setNewMsgSent] = useState<number>(0);
 
   useEffect(() => {
-    socketRef.current = io(serverUrl);
-    socketRef.current?.on("initChatView", (chats: Chat[]) => {
-      setChats(chats);
-    });
+    if (!user) {
+      return;
+    }
 
-    // subcribe to message channel -> update chat state
-    socketRef.current?.on("messageView", (chat: Chat) => {
-      setChats((prevChats) => [...prevChats, chat]);
-    });
-    // unsubcribe from message and chat channel
-    return () => {
-      socketRef.current?.off("initChatView");
-      socketRef.current?.off("messageView");
+    const socket: ChatSocket = io(serverUrl, { autoConnect: false });
+    const handleInitialChats = (initialChats: Chat[]) => {
+      setChats(initialChats);
     };
+    const handleMessage = (chat: Chat) => {
+      setChats((previousChats) => [...previousChats, chat]);
+    };
+
+    socketRef.current = socket;
+    socket.on("initChatView", handleInitialChats);
+    socket.on("messageView", handleMessage);
+    socket.connect();
+
+    return () => {
+      socket.off("initChatView", handleInitialChats);
+      socket.off("messageView", handleMessage);
+      socket.disconnect();
+
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
+    };
+  }, [user]);
+
+  const handleLogin = useCallback((loggedInUser: User) => {
+    setChats([]);
+    setUser(loggedInUser);
   }, []);
 
-  const sendMsg = (msg: string): void => {
-    socketRef.current?.emit("newMessage", { msg: msg, sender: { ...user } });
-    // setNewMsgSent(newMsgSent === 0 ? 1 : 0);
-  };
+  const handleLogout = useCallback(() => {
+    setChats([]);
+    setUser(null);
+  }, []);
+
+  const sendMessage = useCallback(
+    (message: string) => {
+      const trimmedMessage = message.trim();
+
+      if (!user || !trimmedMessage) {
+        return;
+      }
+
+      socketRef.current?.emit("newMessage", {
+        msg: trimmedMessage,
+        sender: user,
+      });
+    },
+    [user]
+  );
 
   return (
-    <div>
-      {user.username ? (
-        <div>
-          <ChatHeader username={user.username} set={setUser} />
+    <main className={user ? "chat_page" : "login_page"}>
+      {user ? (
+        <section className="chat_shell" aria-label="Chat App">
+          <ChatHeader user={user} onLogout={handleLogout} />
           <ChatList chats={chats} loggedUser={user} />
-          <InputText sendMsg={sendMsg} />
-        </div>
+          <InputText onSend={sendMessage} />
+        </section>
       ) : (
-        <LoginPage set={setUser} />
+        <LoginPage onLogin={handleLogin} />
       )}
-    </div>
+    </main>
   );
 };
 

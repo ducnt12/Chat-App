@@ -1,35 +1,53 @@
-import { ChangeEvent, FC, useState } from "react";
+import { FaPaperPlane } from "react-icons/fa6";
+import { memo, useState, type FormEvent } from "react";
 
-type SendMesageFunc = (msg: string) => void;
-
-interface SendMessage {
-  sendMsg: SendMesageFunc; //func
+interface InputTextProps {
+  onSend: (message: string) => void;
 }
 
-const InputText: FC<SendMessage> = ({ sendMsg }) => {
-  const [msg, setMsg] = useState<string>("");
+const InputText = memo(({ onSend }: InputTextProps) => {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) {
+      return;
+    }
+
+    onSend(trimmedMessage);
+    setMessage("");
+  };
 
   return (
-    <div className="inputtext_container">
-      <textarea
-        name="message"
-        id="message"
-        placeholder="Input message here..."
-        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-          setMsg(e.target.value)
-        }
-        value={msg}
-      ></textarea>
-      <button
-        onClick={(): void => {
-          sendMsg(msg);
-          setMsg("");
-        }}
-      >
-        Send
+    <form
+      className="inputtext_container"
+      onSubmit={handleSubmit}
+      aria-label="Message composer"
+    >
+      <div className="composer_field">
+        <label className="visually_hidden" htmlFor="message">
+          Message
+        </label>
+        <textarea
+          name="message"
+          id="message"
+          rows={1}
+          placeholder="Write a message…"
+          autoComplete="off"
+          onChange={(event) => setMessage(event.target.value)}
+          value={message}
+        />
+      </div>
+      <button className="send_button" type="submit">
+        <span>Send</span>
+        <FaPaperPlane aria-hidden="true" />
       </button>
-    </div>
+    </form>
   );
-};
+});
+
+InputText.displayName = "InputText";
 
 export default InputText;

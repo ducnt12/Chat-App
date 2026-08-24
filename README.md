@@ -116,17 +116,18 @@ Run each command from its package directory.
 |---|---|---|
 | Frontend | `npm run dev` | Start the Vite development server |
 | Frontend | `npm run lint` | Run ESLint |
+| Frontend | `npm test` | Run frontend component unit tests |
 | Frontend | `npm run build` | Type-check and create a production build |
 | Frontend | `npm run preview` | Preview the production build locally |
 | Backend | `npm run dev` | Start the server with automatic restarts |
 | Backend | `npm run build` | Compile TypeScript into `Backend/dist/` |
 | Backend | `npm start` | Run the compiled server |
 
-There is no automated test command. For messaging changes, manually verify history loading, sending, receiving, reconnecting, and persistence.
+Frontend component tests cover login, message input, chat rendering, and Socket.IO lifecycle behavior. For messaging changes, also manually verify history loading, sending, receiving, reconnecting, and persistence against the running backend and MongoDB.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on pull requests and pushes to `main`. It installs locked dependencies with caching, lints the frontend, builds both packages, validates Compose, and builds both application images. Unit tests and coverage are omitted because neither package defines a test script.
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main`. It installs locked dependencies with caching, lints and tests the frontend, builds both packages, validates Compose, and builds both application images. The backend does not currently define an automated test script.
 
 ## Troubleshooting
 
